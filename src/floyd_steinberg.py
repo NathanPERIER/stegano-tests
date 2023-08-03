@@ -23,9 +23,9 @@ def floyd_steinberg(img: Image.Image) -> Image.Image :
         bw = threshold(grey)
         pixels[0,i] = (bw, bw, bw)
         diff = grey - bw
-        correction[1]     += 7 * diff / 16
-        correction_next[0] = 5 * diff / 16
-        correction_next[1] = 1 * diff / 16
+        correction[1]     += 8 * diff / 16
+        correction_next[0] = 6 * diff / 16
+        correction_next[1] = 2 * diff / 16
         for j in range(1, width-1) :
             grey = clamp(greyscale(pixels[j,i]) + int(correction[j]))
             bw = threshold(grey)
@@ -39,20 +39,15 @@ def floyd_steinberg(img: Image.Image) -> Image.Image :
         bw = threshold(grey)
         pixels[width-1,i] = (bw, bw, bw)
         diff = grey - bw
-        correction_next[width-2] += 3 * diff / 16
-        correction_next[width-1] += 5 * diff / 16
+        correction_next[width-2] += 6 * diff / 16
+        correction_next[width-1] += 10 * diff / 16
         correction, correction_next = correction_next, correction
-    grey = clamp(greyscale(pixels[0,height-1]) + int(correction[0]))
-    bw = threshold(grey)
-    pixels[0,height-1] = (bw, bw, bw)
-    diff = grey - bw
-    correction[1] = correction[1] + 7 * diff / 16
-    for j in range(1, width-1) :
+    for j in range(width-1) :
         grey = clamp(greyscale(pixels[j,height-1]) + int(correction[j]))
         bw = threshold(grey)
         pixels[j,height-1] = (bw, bw, bw)
         diff = grey - bw
-        correction[j+1] = correction[j+1] + 7 * diff / 16
+        correction[j+1] = correction[j+1] + diff
     grey = clamp(greyscale(pixels[width-1,height-1]) + int(correction[width-1]))
     bw = threshold(grey)
     pixels[width-1,height-1] = (bw, bw, bw)
