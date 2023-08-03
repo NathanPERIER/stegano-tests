@@ -53,17 +53,3 @@ def floyd_steinberg(img: Image.Image) -> Image.Image :
     pixels[width-1,height-1] = (bw, bw, bw)
     img.show()
 
-# def floyd_steinberg(img: Image.Image) -> Image.Image :
-#     width, height = img.size
-#     pixels = img.load()
-#     correction      = [0.0] * width
-#     correction_next = [0.0] * width
-#     for i in range(height) :
-#         for j in range(width) :
-#             grey = clamp(greyscale(pixels[j,i]) + int(correction[j]))
-#             bw = threshold(grey)
-#             # pixels[j,i] = (grey, grey, grey)
-#             pixels[j,i] = (bw, bw, bw)
-#     # TODO last line
-#     img.show()
-
