@@ -35,28 +35,34 @@ pixel_lsb_mappers: dict[str,Callable[[Tuple[int,int,int],int],Tuple[int,int,int]
 
 class SteganoCallback :
 
-    def __init__(self, img: Image.Image, width: int, height: int, channel: Literal['r', 'g', 'b']) :
+    def __init__(self, img: Image.Image, width: int, height: int, channel: Literal['r', 'g', 'b'], pbar: tqdm) :
         self.pixels = img.load()
         self.x_offset = (img.width  - width)  // 2
         self.y_offset = (img.height - height) // 2
         self.pixel_mapper = pixel_lsb_mappers[channel]
+        self.pbar = pbar
         for x in range(0, self.x_offset) :
             for y in range(0, img.height) :
                 self.pixels[x,y] = self.pixel_mapper(self.pixels[x,y], 0)
+                pbar.update(1)
         for x in range(width + self.x_offset, img.width) :
             for y in range(0, img.height) :
                 self.pixels[x,y] = self.pixel_mapper(self.pixels[x,y], 0)
+                pbar.update(1)
         for y in range(0, self.y_offset) :
             for x in range(self.x_offset, width + self.x_offset) :
                 self.pixels[x,y] = self.pixel_mapper(self.pixels[x,y], 0)
+                pbar.update(1)
         for y in range(height + self.y_offset, img.height) :
             for x in range(self.x_offset, width + self.x_offset) :
                 self.pixels[x,y] = self.pixel_mapper(self.pixels[x,y], 0)
+                pbar.update(1)
     
     def __call__(self, x: int, y: int, v: int) :
         x += self.x_offset
         y += self.y_offset
         self.pixels[x,y] = self.pixel_mapper(self.pixels[x,y], v)
+        self.pbar.update(1)
 
 
 def main() :
@@ -81,8 +87,9 @@ def main() :
     src_img = Image.open(src_image_path)
     stegano_img = constrain_max_size(Image.open(stegano_image_path), src_img.width, src_img.height)
 
-    callback = SteganoCallback(src_img, stegano_img.width, stegano_img.height, stegano_channel)
-    floyd_steinberg(stegano_img, callback)
+    with tqdm(total = src_img.width*src_img.height) as pbar :
+        callback = SteganoCallback(src_img, stegano_img.width, stegano_img.height, stegano_channel, pbar)
+        floyd_steinberg(stegano_img, callback)
     src_img.save(dst_image_path)
 
 
