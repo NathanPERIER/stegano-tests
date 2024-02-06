@@ -7,10 +7,10 @@ from tqdm import tqdm
 
 from typing import Literal, Tuple, Callable
 
-from src.floyd_steinberg import floyd_steinberg
+from src.floyd_steinberg import floyd_steinberg, threshold
 
 def help() :
-    print(f"{sys.argv[0]} <source_image> <stegano_image> <channel> <dest_image>")
+    print(f"{sys.argv[0]} [--wb] [--bg <bg_val>] <source_image> <stegano_image> <channel> <dest_image>")
 
 
 def constrain_max_size(img: Image.Image, width: int, height: int) -> Image.Image :
@@ -64,21 +64,22 @@ class SteganoCallback :
         self.y_offset = (img.height - height) // 2
         self.pixel_mapper = get_lsb_mapper(params.channel, params.whiteboard)
         self.pbar = pbar
+        background_val = threshold(params.background)
         for x in range(0, self.x_offset) :
             for y in range(0, img.height) :
-                self.pixels[x,y] = self.pixel_mapper(self.pixels[x,y], 0)
+                self.pixels[x,y] = self.pixel_mapper(self.pixels[x,y], background_val)
                 pbar.update(1)
         for x in range(width + self.x_offset, img.width) :
             for y in range(0, img.height) :
-                self.pixels[x,y] = self.pixel_mapper(self.pixels[x,y], 0)
+                self.pixels[x,y] = self.pixel_mapper(self.pixels[x,y], background_val)
                 pbar.update(1)
         for y in range(0, self.y_offset) :
             for x in range(self.x_offset, width + self.x_offset) :
-                self.pixels[x,y] = self.pixel_mapper(self.pixels[x,y], 0)
+                self.pixels[x,y] = self.pixel_mapper(self.pixels[x,y], background_val)
                 pbar.update(1)
         for y in range(height + self.y_offset, img.height) :
             for x in range(self.x_offset, width + self.x_offset) :
-                self.pixels[x,y] = self.pixel_mapper(self.pixels[x,y], 0)
+                self.pixels[x,y] = self.pixel_mapper(self.pixels[x,y], background_val)
                 pbar.update(1)
     
     def __call__(self, x: int, y: int, v: int) :
@@ -101,6 +102,10 @@ def main() :
         params.whiteboard = True
         args.popleft()
 
+    if len(args) >= 2 and args[0] in ['--background', '--bg'] :
+        args.popleft()
+        params.background = int(args.popleft())
+    
     if len(args) < 4 :
         help()
         sys.exit(1)
